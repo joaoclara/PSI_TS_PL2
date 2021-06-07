@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <Reference Include="ProtocolSI">
-      <HintPath>..\..\FichaPratica3\ProtocolSI.dll</HintPath>
+      <HintPath>..\ProtocolSI.dll</HintPath>
     </Reference>
   </ItemGroup>
 

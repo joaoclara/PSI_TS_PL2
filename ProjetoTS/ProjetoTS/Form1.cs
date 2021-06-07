@@ -36,7 +36,7 @@ namespace ProjetoTS
 
         }
 
-        // gerar chave assimetrica(chave publica + chave privada)
+        // gerar chave assimetrica (chave publica + chave privada)
         // enviar a chave publica 
         // servidor recebe a chave pulibca
         // servidor gera a chave simetrica 
