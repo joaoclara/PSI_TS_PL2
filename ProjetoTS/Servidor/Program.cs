@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Security.Cryptography;
 
-
 namespace Servidor
 {
     class Program
@@ -18,18 +17,6 @@ namespace Servidor
 
         private static ProtocolSI protocolSI = new ProtocolSI();
         private static RSACryptoServiceProvider rSA = new RSACryptoServiceProvider();
-
-        private static string Decifrar(string message)
-        {
-            // 1º - Converter dados de Base64 para byte[]
-            byte[] dados = Convert.FromBase64String(message);
-            // 2º - Decifrar os dados e guardá-los numa variável
-            byte[] dadosDec = rSA.Decrypt(dados, true);
-            // 3º - Apresentar os dados
-            var decrypted = Encoding.UTF8.GetString(dadosDec);
-
-            return decrypted;
-        }
 
         public static void Main(string[] args)
         {         
@@ -51,9 +38,63 @@ namespace Servidor
                 ClientHandler clientHandler = new ClientHandler(tcpClient, clientCounter);
                 clientHandler.Handle();
             }
+        }
+
+        class Keys
+        {
+            private byte[] key;
+            private byte[] iv;
+            private string pass ="dkdhadhaiuh";
+
+            AesCryptoServiceProvider aes;
+
+            public Keys()
+            {
+
+            }
+
+            public string GerarChavePrivada(string publicKey)
+            {
+                aes = new AesCryptoServiceProvider();
+
+                key = aes.Key;
+
+                iv = aes.IV;
+
+                byte[] salt = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+
+                Rfc2898DeriveBytes pwdGen = new Rfc2898DeriveBytes(pass, salt, 1000);
+
+                byte[] chave = pwdGen.GetBytes(16); // gerar pass 16 bytes
+
+                string passB64 = Convert.ToBase64String(chave);
+
+                var symetricKey = CifrarKey(passB64, publicKey);
+
+                return symetricKey;
+            }
+
+            private string CifrarKey(string symetricKey, string publicKey)
+            {
+                byte[] dados = Encoding.UTF8.GetBytes(symetricKey);
+
+                var publicKeyBytes = Encoding.UTF8.GetBytes(publicKey);
+
+                RSAParameters RSAParams = new RSAParameters();
+
+                RSAParams.Modulus = publicKeyBytes;
+
+                rSA.ImportParameters(RSAParams);
+
+                byte[] dadosEnc = rSA.Encrypt(dados, true);
+
+                var keyCifrada = Convert.ToBase64String(dadosEnc);
+
+                return keyCifrada;
+            }
 
         }
-      
+
         class ClientHandler
         {
             TcpClient tcpClient;
@@ -85,40 +126,44 @@ namespace Servidor
                     byte[] ack;
 
                     switch (protocoloSI.GetCmdType())
-                    {
+                    {       
+                            //receber Public Key e enviar a chave simetrica
                         case ProtocolSICmdType.PUBLIC_KEY:
                             Console.WriteLine("Public key");
                             var clientPublicKey = protocoloSI.GetStringFromData();
+                            Keys keys = new Keys();
+                            var symetricKey = keys.GerarChavePrivada(clientPublicKey);
+                            var data = protocoloSI.Make(ProtocolSICmdType.SECRET_KEY,symetricKey);
+                            networkStream.Write(data, 0, data.Length);
                             break;
-
+                            
+                            //receber mensagem 
                         case ProtocolSICmdType.DATA:
                             Console.WriteLine("Client" + clientID + ": " + protocoloSI.GetStringFromData());                //Enviar as mensagens
                             ack = protocoloSI.Make(ProtocolSICmdType.ACK);
-
-                            var x = Convert.ToBase64String(ack);
-                            Console.WriteLine(x);
                             networkStream.Write(ack, 0, ack.Length);
                             break;
-
-                        case ProtocolSICmdType.EOT:
-                            Console.WriteLine("Client {0} terminated session ", clientID);
-                            ack = protocoloSI.Make(ProtocolSICmdType.ACK);
 
                             //Sair da sesion
+                        case ProtocolSICmdType.EOT:
+                            Console.WriteLine("Client {0} terminated session ", clientID);
+                            ack = protocoloSI.Make(ProtocolSICmdType.ACK);                          
                             networkStream.Write(ack, 0, ack.Length);
                             break;
 
+                            //receber o Login e verificar o Logi
                         case ProtocolSICmdType.USER_OPTION_1:
-
                             Console.WriteLine("User option 1");
                             var userPass = protocoloSI.GetStringFromData();
                             var userName = protocoloSI.GetStringFromData();
-
                             User user = new User(userPass, userName);
                             var login = user.VerifyLogin(userPass, userName);
-
-                            
+                            var loginString = Convert.ToString(login);
+                            ack = protocoloSI.Make(ProtocolSICmdType.USER_OPTION_3, loginString);
+                            networkStream.Write(ack, 0, ack.Length);
                             break;
+
+                            //receber o Registo
                         case ProtocolSICmdType.USER_OPTION_2:
                             Console.WriteLine("User option 2");
                             
@@ -131,7 +176,6 @@ namespace Servidor
         }
     }
 
-    
     class User
     {
         private const int NUMBER_OF_ITERATIONS = 1000;
@@ -241,7 +285,6 @@ namespace Servidor
                 throw new Exception("Error while inserting an user:" + e.Message);
             }
         }
-
         private static byte[] GenerateSalt(int size)
         {
             //Generate a cryptographic random number.

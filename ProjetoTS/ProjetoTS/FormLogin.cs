@@ -25,21 +25,24 @@ namespace Cliente
         public FormLogin()
         {
             InitializeComponent();
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, PORT);
             protocoloSI = new ProtocolSI();
             rSA = new RSACryptoServiceProvider();
+            tcpClient = new TcpClient();
+            tcpClient.Connect(endPoint);                                            //Instaciar as propriedades
+            networkStream = tcpClient.GetStream();
         }
         private void FormLogin_Load(object sender, EventArgs e)
         {
             var publicKey = rSA.ToXmlString(false); // chave publica
 
-            var x = protocoloSI.Make(ProtocolSICmdType.PUBLIC_KEY, publicKey);
+            var publicK = protocoloSI.Make(ProtocolSICmdType.PUBLIC_KEY, publicKey);
 
-            networkStream.Write(x, 0, x.Length);
+            networkStream.Write(publicK, 0, publicK.Length);
         }
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            string publickey = rSA.ToXmlString(false);
 
             var pass = txtPassword.Text;
             var user = txtUtilizador.Text;
@@ -47,10 +50,9 @@ namespace Cliente
             EnviarLogin(pass, user);
 
         }
-
-        private string EnviarLogin(string pass, string user)
+        private void EnviarLogin(string pass, string user)
         {
-            try { 
+           
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, PORT);
 
                 tcpClient = new TcpClient();
@@ -67,30 +69,31 @@ namespace Cliente
 
                 networkStream.Write(userBytes, 0, userBytes.Length);
 
-
-                /*
-                 * 
-                 *                 int bytesRead = 0;
-                byte[] ack = new byte[tcpClient.ReceiveBufferSize];
-
-                string response = Encoding.UTF8.GetString(ack, 0, bytesRead);
-
-                
-                if (response == "")
+                while (protocoloSI.GetCmdType() != ProtocolSICmdType.EOT)
                 {
-                    return "ERRO";
+                    int bytesRead = networkStream.Read(protocoloSI.Buffer, 0, protocoloSI.Buffer.Length);
+
+                    byte[] ack;
+
+                    switch (protocoloSI.GetCmdType())
+                    {
+
+                        case ProtocolSICmdType.USER_OPTION_3:
+                            var msg = protocoloSI.GetStringFromData();
+                            var login = Convert.ToBoolean(msg);
+                            if (login == true)
+                                MessageBox.Show("Login com Sucesso");
+                            break;
+
+                        case ProtocolSICmdType.SECRET_KEY:
+
+                            break;
+
+
+                    }
                 }
-                */
-                return null;
-                
-            }
-            catch
-            {
-                return "ERRO - Excepção";
-            }
-            finally
-            {
-                if(networkStream != null)
+
+                if (networkStream != null)
                 {
                     networkStream.Close();
                 }
@@ -98,10 +101,8 @@ namespace Cliente
                 {
                     tcpClient.Close();
                 }            
-            }
+            
         }
-
-       
 
         private void btnRegistar_Click(object sender, EventArgs e)
         {
@@ -139,4 +140,33 @@ namespace Cliente
         }
         */
     }
+    //Enviar as mensagens
+
+
+
+    /*
+     * 
+     *       try
+{            int bytesRead = 0;
+    byte[] ack = new byte[tcpClient.ReceiveBufferSize];
+
+    string response = Encoding.UTF8.GetString(ack, 0, bytesRead);
+
+
+    if (response == "")
+    {
+        return "ERRO";
+    }
+
+    return null;
+
+}
+catch
+    {
+        return "ERRO - Excepção";
+    }
+
+finally
+{
+    */
 }

@@ -36,9 +36,10 @@ namespace ProjetoTS
             // 
             // btnSendMessage
             // 
-            this.btnSendMessage.Location = new System.Drawing.Point(36, 114);
+            this.btnSendMessage.Location = new System.Drawing.Point(41, 152);
+            this.btnSendMessage.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnSendMessage.Name = "btnSendMessage";
-            this.btnSendMessage.Size = new System.Drawing.Size(186, 22);
+            this.btnSendMessage.Size = new System.Drawing.Size(213, 29);
             this.btnSendMessage.TabIndex = 0;
             this.btnSendMessage.Text = "Send";
             this.btnSendMessage.UseVisualStyleBackColor = true;
@@ -46,9 +47,10 @@ namespace ProjetoTS
             // 
             // btnLeaveSession
             // 
-            this.btnLeaveSession.Location = new System.Drawing.Point(36, 160);
+            this.btnLeaveSession.Location = new System.Drawing.Point(41, 213);
+            this.btnLeaveSession.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnLeaveSession.Name = "btnLeaveSession";
-            this.btnLeaveSession.Size = new System.Drawing.Size(186, 22);
+            this.btnLeaveSession.Size = new System.Drawing.Size(213, 29);
             this.btnLeaveSession.TabIndex = 1;
             this.btnLeaveSession.Text = "Leave";
             this.btnLeaveSession.UseVisualStyleBackColor = true;
@@ -56,20 +58,22 @@ namespace ProjetoTS
             // 
             // rtxtMessage
             // 
-            this.rtxtMessage.Location = new System.Drawing.Point(36, 12);
+            this.rtxtMessage.Location = new System.Drawing.Point(41, 16);
+            this.rtxtMessage.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.rtxtMessage.Name = "rtxtMessage";
-            this.rtxtMessage.Size = new System.Drawing.Size(186, 96);
+            this.rtxtMessage.Size = new System.Drawing.Size(212, 127);
             this.rtxtMessage.TabIndex = 2;
             this.rtxtMessage.Text = "";
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(271, 204);
+            this.ClientSize = new System.Drawing.Size(310, 272);
             this.Controls.Add(this.rtxtMessage);
             this.Controls.Add(this.btnLeaveSession);
             this.Controls.Add(this.btnSendMessage);
+            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);

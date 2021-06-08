@@ -36,11 +36,12 @@ namespace ProjetoTS
 
         }
 
-        // gerar chave assimetrica (chave publica + chave privada)
-        // enviar a chave publica 
-        // servidor recebe a chave pulibca
-        // servidor gera a chave simetrica 
-        // servidor cifrar com a chave publica do cliente a chave simetrica e envia para o cliente
+        // FEITO gerar chave assimetrica (chave publica + chave privada) 
+        // FEITO enviar a chave publica do cliente 
+        // FEITO servidor recebe a chave pulibca
+
+        // FEITO servidor gera a chave simetrica 
+        // FEITO servidor cifrar com a chave publica do cliente a chave simetrica e envia para o cliente
         // o cliente guarda a chave simetrica 
 
 
