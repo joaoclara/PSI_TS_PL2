@@ -42,17 +42,11 @@ namespace ProjetoTS
 
         // FEITO servidor gera a chave simetrica 
         // FEITO servidor cifrar com a chave publica do cliente a chave simetrica e envia para o cliente
-        // o cliente guarda a chave simetrica 
+        // FEITO o cliente guarda a chave simetrica 
 
-
-        //cifrar simetrica
-
-        //decifrar chave privada
-
-        //decifrar chave simetrica
 
         public string Cifrar(string message)
-        {                
+        {
             // 1º - Converter dados para byte[]
             byte[] dados = Encoding.UTF8.GetBytes(message);
             // 2º - Cifrar os dados e guardá-los numa variável

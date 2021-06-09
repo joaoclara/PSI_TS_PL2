@@ -34,40 +34,64 @@ namespace Cliente
         }
         private void FormLogin_Load(object sender, EventArgs e)
         {
+            
+        }
+
+        private string ComunicarServidor()
+        {
             var publicKey = rSA.ToXmlString(false); // chave publica
 
             var publicK = protocoloSI.Make(ProtocolSICmdType.PUBLIC_KEY, publicKey);
 
             networkStream.Write(publicK, 0, publicK.Length);
-        }
 
+            int bytesRead = networkStream.Read(protocoloSI.Buffer, 0, protocoloSI.Buffer.Length);
+
+            var symetricKey = protocoloSI.GetStringFromData();
+                      
+            return symetricKey;
+        }
         private void btnLogin_Click(object sender, EventArgs e)
         {
+            var symetricKey = ComunicarServidor();
 
             var pass = txtPassword.Text;
             var user = txtUtilizador.Text;
-          
-            EnviarLogin(pass, user);
 
+            var enctypted = Cifrar(pass, user, symetricKey);
+
+            EnviarLogin(enctypted);
         }
-        private void EnviarLogin(string pass, string user)
+
+        public string Cifrar(string pass, string user, string symetricKey)
         {
-           
-                IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, PORT);
+            var symetricKeyBytes = Encoding.UTF8.GetBytes(symetricKey);
 
-                tcpClient = new TcpClient();
+            RSAParameters RSAParams = new RSAParameters
+            {
+                Modulus = symetricKeyBytes,
+                Exponent = new byte[] { 1, 0, 1 }
+            };
 
-                tcpClient.Connect(endPoint);
+            rSA.ImportParameters(RSAParams);
 
-                networkStream = tcpClient.GetStream();
+            // 1º - Converter dados para byte[]
+            byte[] dados = Encoding.UTF8.GetBytes(pass+"+"+user);
 
-                byte[] passBytes = protocoloSI.Make(ProtocolSICmdType.USER_OPTION_1, pass);
+            // 2º - Cifrar os dados e guardá-los numa variável
+            byte[] dadosEnc = rSA.Encrypt(dados, true);
 
-                byte[] userBytes = protocoloSI.Make(ProtocolSICmdType.USER_OPTION_1, user);
+            // 3º - Apresentar os dados em Base64
+            var encrypted = Convert.ToBase64String(dadosEnc);
+
+            return encrypted;
+        }
+
+        private void EnviarLogin(string encrypted)
+        {
+                byte[] passBytes = protocoloSI.Make(ProtocolSICmdType.USER_OPTION_1, encrypted);
 
                 networkStream.Write(passBytes, 0, passBytes.Length);
-
-                networkStream.Write(userBytes, 0, userBytes.Length);
 
                 while (protocoloSI.GetCmdType() != ProtocolSICmdType.EOT)
                 {
@@ -76,20 +100,15 @@ namespace Cliente
                     byte[] ack;
 
                     switch (protocoloSI.GetCmdType())
-                    {
-
+                    {                             
                         case ProtocolSICmdType.USER_OPTION_3:
                             var msg = protocoloSI.GetStringFromData();
                             var login = Convert.ToBoolean(msg);
                             if (login == true)
-                                MessageBox.Show("Login com Sucesso");
+                            MessageBox.Show("Login com Sucesso");
+                            Form1 form1 = new Form1();
+                            form1.Show();                           
                             break;
-
-                        case ProtocolSICmdType.SECRET_KEY:
-
-                            break;
-
-
                     }
                 }
 
@@ -123,50 +142,5 @@ namespace Cliente
 
             Register(user, saltedHash, salt);*/
         }
-
-
-        /*
-        if (verifylogin(txtutilizador.text, txtpassword.text) == true)
-        {
-            MessageBox.Show("login com sucesso");
-
-            Form1 formchat = new Form1();
-
-            formchat.Show();
-        }
-        else
-        {
-            MessageBox.Show("login errado");
-        }
-        */
     }
-    //Enviar as mensagens
-
-
-
-    /*
-     * 
-     *       try
-{            int bytesRead = 0;
-    byte[] ack = new byte[tcpClient.ReceiveBufferSize];
-
-    string response = Encoding.UTF8.GetString(ack, 0, bytesRead);
-
-
-    if (response == "")
-    {
-        return "ERRO";
-    }
-
-    return null;
-
-}
-catch
-    {
-        return "ERRO - Excepção";
-    }
-
-finally
-{
-    */
 }
